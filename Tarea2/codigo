@@ -58,3 +58,6 @@ with open("tarea2.plot","w") as archivo:
     print("show arrow", file=archivo)
     print("plot 'nodos.dat' using 1:2:3 with points pt 7 lc var", file=archivo)
     print("quit()",file=archivo)
+
+
+mpo
