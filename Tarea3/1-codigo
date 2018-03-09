@@ -1,0 +1,162 @@
+from random import random
+from math import ceil, floor, sqrt
+
+def distancia(p,q):
+    return sqrt(((p[0]-q[0])**2)+((p[1]-q[1])**2))
+def pmedio(p,q):
+    return ((p[0]+q[0])/2),((p[1]+q[1])/2)
+
+class Grafo:
+    def __init__(self, prob = 1, radio = 4.5):
+        self.n = Nnodos
+        self.m = ceil(Nnodos/5)
+        self.p = prob
+        self.r = radio
+        self.nodos = []
+        self.aristas = []
+        self.pm = []
+        self.pesos = []
+        self.colores = []
+        
+    def CreaNodos(self):
+        for t in range(self.n):
+            x=10*random()
+            y=10*random()
+            self.nodos.append((x,y))
+            
+    def CreaAristas(self):
+        with open ("nodos.dat", "w") as crear:
+            t=0
+            for(x2,y2) in self.nodos[0:self.n+1]:
+                print(x2,y2,t,file=crear)
+            t=1
+            for(x1,y1) in self.nodos[0:self.m]:
+                print(x1,y1,t, file=crear)
+                t =t+1
+            t=1
+            for(x1,y1) in self.nodos[0:self.m]:
+                for(x2,y2) in self.nodos[self.m:self.n]:
+                    if distancia((x1,y1),(x2,y2))<self.r:
+                        self.pm.append(pmedio((x1,y1),(x2,y2)))
+                        self.aristas.append((x1,y1,x2,y2))
+                        self.pesos.append(ceil(distancia((x1,y1),(x2,y2))))
+                        self.colores.append(t)
+                        print(x2,y2,t, file=crear)
+                t=t+1
+
+#######################################################################################################################
+
+    def floyd_warshall(self): 
+        d = {}
+        for v in range (len(self.nodos)):
+            d[(self.nodos[v], self.nodos[v])] = 0 # distancia reflexiva es cero
+            for u in range (len(self.aristas)): # para vecinos, la distancia es el peso
+                d[(v, u)] = G.E[(v, u)]
+        for intermedio in G.V:
+            for desde in G.V:
+                for hasta in G.V:
+                    di = None
+                    if (desde, intermedio) in d:
+                        di = d[(desde, intermedio)]
+                    ih = None
+                    if (intermedio, hasta) in d:
+                        ih = d[(intermedio, hasta)]
+                    if di is not None and ih is not None:
+                        c = di + ih # largo del camino via "i"
+                        if (desde, hasta) not in d or c < d[(desde, hasta)]:
+                            d[(desde, hasta)] = c # mejora al camino actual
+        return d
+
+######################################################################################################################
+ 
+
+    def ArchivoGnu(self):
+        with open("tarea3.plot","w") as archivo:
+            print("set term eps", file=archivo)
+            print("set output 'grafica3.eps'", file=archivo)
+            print("set xrange [-0.5:10.5]", file=archivo)
+            print("set yrange [-0.5:10.5]", file=archivo)
+            print("set pointsize 1", file=archivo)
+            print("set size square", file=archivo)
+            print("set key off", file=archivo)
+            num=1
+            for a in range (len(self.aristas)):
+                (x1,y1,x2,y2)=self.aristas[a]
+                (xm,ym)=self.pm[a]
+                w=self.pesos[a]
+                col=self.colores[a]
+                if dirigido is 1:
+                    print("set arrow {:d} from {:f}, {:f} to {:f}, {:f} head filled size .5,10 lw 1".format(num,x1,y1,x2,y2),file=archivo)                     
+                else:
+                    print("set arrow {:d} from {:f}, {:f} to {:f}, {:f} nohead lt {:f} lw 1".format(num,x1,y1,x2,y2,col),file=archivo)
+                if pesos is 1:
+                    print("set label font ',10' '{:d}' at {:f}, {:f} tc lt {:f}".format(w, xm, ym, col), file = archivo)                    
+                num+=1            
+            print("plot 'nodos.dat' using 1:2:3 with points pt 7 lc var", file=archivo)
+            print("show arrow", file=archivo)
+            print("quit()",file=archivo)
+
+######################################################################################################################
+
+    def camino(s, t, c, f): # construcción de un camino aumentante
+        cola = [s]
+        usados = set()
+        camino = dict()
+        while len(cola) > 0:
+            u = cola.pop(0)
+            usados.add(u)
+            for (w, v) in c:
+                if w == u and v not in cola and v not in usados:
+                    actual = f.get((u, v), 0)
+                    dif = c[(u, v)] - actual
+                    if dif > 0:
+                        cola.append(v)
+                        camino[v] = (u, dif)
+        if t in usados:
+            return camino
+        else: # no se alcanzó
+            return None
+    
+    def ford_fulkerson(c, s, t): # algoritmo de Ford y Fulkerson
+        if s == t:
+            return 0
+        maximo = 0
+        f = dict()
+        while True:
+            aum = camino(s, t, c, f)
+            if aum is None:
+                break # ya no hay
+            incr = min(aum.values(), key = (lambda k: k[1]))[1]
+            u = t
+            while u in aum:
+                v = aum[u][0]
+                actual = f.get((v, u), 0) # cero si no hay
+                inverso = f.get((u, v), 0)
+                f[(v, u)] = actual + incr
+                f[(u, v)] = inverso - incr
+                u = v
+            maximo += incr
+        return maximo
+
+
+#######################################################################################################################
+
+
+Nnodos=10
+dirigido=0 # no dirigido = 0 / dirigido = 1
+pesos=0    # sin pesos   = 0 / con pesos =1
+G=Grafo()
+G.CreaNodos()
+G.CreaAristas()
+G.ArchivoGnu()
+
+#0-gris
+#1-morado
+#2-verde
+#3-celeste
+#4-naranja
+#5-amarillo
+#6-azul
+#7-rojo
+#8-negro
+
