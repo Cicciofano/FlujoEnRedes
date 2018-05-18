@@ -1,0 +1,139 @@
+from random import random, normalvariate,expovariate, randint
+from math import ceil, floor, sqrt
+
+def distancia(p,q):
+    return (abs(q[0]-p[0])+ abs(q[1]-p[1]))
+def pmedio(p,q):
+    return ((p[0]+q[0])/2),((p[1]+q[1])/2)
+
+class Grafo:  
+    def __init__(self,k,p):
+        self.k = k
+        self.p = p
+        self.nodos = []
+        self.pesos = []
+        self.colores = []
+        self.vecinos = dict()
+        
+    def CreaNodos(self):
+        with open ("cuadricula.dat", "w") as crear:
+            for t in range(1,k+1):
+                for tt in range(1,k+1):
+                    self.nodos.append((tt,t))
+                    print(tt,t, 0, file=crear)
+                    if tt is 1 and t is 1:
+                        print(tt,t, 2, file=crear)
+                    if tt is k and t is k:
+                        print(tt,t, 1, file=crear)
+                    if (tt,t) not in self.vecinos:
+                        self.vecinos[(tt,t)]=[]
+
+    def CreaAristas(self,l):
+        self.aristas = dict()
+        self.contador = 0
+        with open ("nodos.dat", "w") as crear:
+            for n in (self.nodos):
+                for nn in (self.nodos):
+                    if n is not nn and distancia(n, nn) < l+1:        
+                        self.aristas[n,nn] = self.aristas[nn,n] = floor(normalvariate(2, .5))+1
+                        self.vecinos[n].append(nn)
+                        self.vecinos[nn].append(n)
+            print(self.aristas, file=crear)
+
+    def juntacion(self):
+        import random
+        for j in range(0, len(self.nodos)-5):
+            print(len(self.aristas))
+            p = random.sample(self.nodos,1)[0]
+            q = random.sample(self.nodos,1)[0]
+            while (p,q) not in self.aristas:
+                p = random.sample(self.nodos,1)[0]
+                q = random.sample(self.nodos,1)[0]
+            if (p,q) in self.aristas:
+                r = pmedio(p,q)
+                self.nodos.append(r)
+
+                self.vecinos[r]=[]
+                for pp in range(0,len(self.vecinos[p])-1):
+                    if q is not self.vecinos[p][pp]:
+                        if (p,self.vecinos[p][pp]) in self.aristas:
+                            pdla = self.aristas[p,self.vecinos[p][pp]]
+                            self.vecinos[r].append(self.vecinos[p][pp])
+                            self.aristas[r,self.vecinos[p][pp]] = pdla
+                            self.aristas[self.vecinos[p][pp],r] = pdla
+                        
+                for qq in range(0,len(self.vecinos[q])-1):
+                    if p is not self.vecinos[q][qq]:
+                        if (p,self.vecinos[q][qq]) in self.aristas:
+                            pdla = self.aristas[q,self.vecinos[q][qq]]
+                            self.vecinos[r].append(self.vecinos[q][qq])
+                            self.aristas[r,self.vecinos[q][qq]] = pdla
+                            self.aristas[self.vecinos[q][qq],r] = pdla
+                
+                del self.vecinos[p]
+                del self.vecinos[q]
+
+                for qa in self.nodos:
+                    if (p,qa) in self.aristas:
+                        del self.aristas[p,qa]
+                        print("borró 1")
+                    if (qa,p) in self.aristas:
+                        del self.aristas[qa,p]
+                        print("borró 2")
+                    if (q,qa) in self.aristas:
+                        del self.aristas[q,qa]
+                        print("borró 3")
+                    if (qa,q) in self.aristas:
+                        del self.aristas[qa,q]
+                        print("borró 4")
+                
+                
+
+                self.nodos.remove(p)
+                self.nodos.remove(q)
+                
+        with open ("cuadricula.dat", "w") as crear:
+            for nodos in range(len(self.nodos)):
+                print(self.nodos[nodos][0], self.nodos[nodos][1], 1, file=crear)
+            
+                
+             
+        
+            
+    def ArchivoGnu(self):
+        with open("tarea6.plot","w") as archivo:
+            print("set term png", file=archivo)
+            print("set output 'tarea6.png'", file=archivo)
+            print("set xrange [0: {:d}]".format(k+1), file=archivo)
+            print("set yrange [0: {:d}]".format(k+1), file=archivo)
+            print("set pointsize .5", file=archivo)
+            print("set size square", file=archivo)
+            print("set key off", file=archivo)      
+            num=1
+            conteo=1
+            for a in self.aristas:
+                p1=a[0]
+                p2=a[1]
+                x1=p1[0]
+                y1=p1[1]
+                x2=p2[0]
+                y2=p2[1]
+                if conteo < len(self.aristas)-(self.contador-1):
+                    print("set arrow {:d} from {:d}, {:d} to {:d}, {:d} nohead".format(num,x1,y1,x2,y2),file=archivo)
+                else:
+                    print("set arrow {:d} from {:d}, {:d} to {:d}, {:d} head filled size .5,10 lt 4 lw 2".format(num,x1,y1,x2,y2),file=archivo)                    
+                num+=1
+                conteo+=1
+            print("show arrow", file=archivo)
+            print("plot 'cuadricula.dat' using 1:2:3 with points pt 5 lc var", file=archivo)
+            print("quit()",file=archivo)
+
+k = 5
+l = 1
+p = 0.0
+G=Grafo(k,p)
+G.CreaNodos()
+G.CreaAristas(l)
+G.juntacion()
+G.ArchivoGnu()
+
